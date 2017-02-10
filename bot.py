@@ -4,9 +4,9 @@
 '''
     Author: max.lager
     E-mail: tadambot@gmail.com
-    @Version: 1.0
+    @Version: 1.1
     @Release date: June 20/2016
-    www.tadambot.com
+    @Update 1.1 date: December 12/2016
 '''
 
 import os
@@ -26,12 +26,12 @@ from acrcloud.recognizer import ACRCloudRecognizer
     Audio Recognition: ACRCloud (www.acrcloud.com)
 '''
 
-WEBHOOK_HOST = 'IP'
+WEBHOOK_HOST = 'XXXXXXXXXX'
 WEBHOOK_PORT = 443  # EN: 443, 80, 88 or 8443 only
-WEBHOOK_LISTEN = '0.0.0.0'  
+WEBHOOK_LISTEN = '0.0.0.0'
 
-WEBHOOK_SSL_CERT = 'keys1/webhook_cert.pem'  # Certificate path
-WEBHOOK_SSL_PRIV = 'keys1/webhook_pkey.pem'  # Private Key path
+WEBHOOK_SSL_CERT = './webhook_cert.pem'  # Certificate path
+WEBHOOK_SSL_PRIV = './webhook_pkey.pem'  # Private Key path
 
 WEBHOOK_URL_BASE = "https://%s:f%s" % (WEBHOOK_HOST, WEBHOOK_PORT)
 WEBHOOK_URL_PATH = "/%s/" % (config.token)
@@ -179,7 +179,7 @@ def handler_help(message):
                                       "3. When audio was sent - wait for a s"
                                       "econd to get a result.\n\n"
                                       "If there are problems, please, contact us "
-                                      "@tadambot_support"
+                                      "@tadam_support"
                      )
 
 @bot.message_handler(commands=['whereisit'])
@@ -254,15 +254,12 @@ def handler_voice(message):
         mlist        = data_collector(result_p)
         print('NEW RECOGNITION: %s' % (result_p['status']['msg']))
         if result_p['status']['msg'] == 'Success':
-            '''
-            Flexible creation of output.
-            Some data in the response may be absent.
-            '''
             data_income(message.voice.file_id, '1')
             if mlist[0]: #artist
                 output_0 = mlist[0]
-
+                print(mlist[0], end='')
             if mlist[1]: #title
+                print(mlist[1])
                 if 'output_0' in locals():
                     output_0 +=" - %s" % (mlist[1])
                 else:
@@ -289,25 +286,29 @@ def handler_voice(message):
                 else:
                     output_2 = "%s%s" % (config.yt_link, mlist[5])
 
+            botstore = 'https://storebot.me/bot/tadam_bot'
+            button_rate = telebot.types.InlineKeyboardButton('Rate, please', botstore)
+            user_markup = telebot.types.InlineKeyboardMarkup()
+
             if mlist[6] and mlist[7]:
                 spotify = config.spotify_link + str(mlist[6])
                 button_spot = telebot.types.InlineKeyboardButton('Buy on Spotify',spotify)
                 deezer = config.deezer_link + str(mlist[7])
                 button_dez = telebot.types.InlineKeyboardButton('Buy on Deezer',deezer)
                 user_markup = telebot.types.InlineKeyboardMarkup()
-                user_markup.row(button_dez, button_spot)
+                user_markup.row(button_dez, button_spot, button_rate)
 
             elif mlist[6] and (not mlist[7]):
                 spotify = config.spotify_link + mlist[6]
                 button_spot = telebot.types.InlineKeyboardButton('Buy on Spotify',spotify)
                 user_markup = telebot.types.InlineKeyboardMarkUp()
-                user_markup.row(button_spot)
+                user_markup.row(button_spot, button_rate)
 
             elif (not mlist[6]) and mlist[7]:
                 deezer = config.deezer_link + mlist[7]
                 button_dez = telebot.types.InlineKeyboardButton('Buy on Deezer',deezer)
                 user_markup = telebot.types.InlineKeyboardMarkup()
-                user_markup.row(button_dez)
+                user_markup.row(button_dez, button_rate)
 
             else:
                 tadambutton = telebot.types.InlineKeyboardButton(
@@ -315,8 +316,7 @@ def handler_voice(message):
                                                 config.tadamweb)
                 user_markup = telebot.types.InlineKeyboardMarkup(tadambutton)
                 user_markup.row(tadambutton)
-
-
+            
             bot.send_message(user_id, '<b>%s</b>' % (output_0),
                              parse_mode="HTML")
             bot.send_message(user_id, output_2,
@@ -327,13 +327,13 @@ def handler_voice(message):
                 'TadamBot website', config.tadamweb)
             user_markup = telebot.types.InlineKeyboardMarkup(tadambutton)
             user_markup.row(tadambutton)
-            bot.send_message(user_id, 'Sorry, no result. You can try again or give feedback @tadambot_support.',
+            bot.send_message(user_id, 'Sorry, no result. You can try again or leave feedback @tadam_support.',
                              reply_markup=user_markup)
         return mlist
 
 
 # Webhook removing eliminates some of the problems
-bot.remove_webhook()
+#bot.remove_webhook()
 
 # Webhook installing
 bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH,
